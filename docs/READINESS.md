@@ -1,6 +1,6 @@
 # Submission readiness
 
-Status: all three bonus features are implemented and locally verified. The previously published Sepolia contract and Vercel build are still the ETH-only version; public bonus proof requires a fresh two-contract deployment and Vercel update.
+Status: all three bonus features are implemented and locally verified. The bonus contracts are deployed on Sepolia and the public configuration is updated. Public IPFS and three-role wallet receipts remain.
 
 ## Verified in the current source
 
@@ -19,9 +19,9 @@ Status: all three bonus features are implemented and locally verified. The previ
 
 ## Required before claiming live Sepolia bonuses
 
-- [ ] Deploy the new MockUSDC and PactEscrow on Sepolia.
+- [x] Deploy the new MockUSDC and PactEscrow on Sepolia.
 - [ ] Verify both contracts on Etherscan from `artifacts/standard-input.json`.
-- [ ] Update `deployments/sepolia.json` and all five `NEXT_PUBLIC_*` Vercel variables.
+- [x] Update `deployments/sepolia.json` and all five `NEXT_PUBLIC_*` Vercel variables.
 - [ ] Add `PINATA_JWT` to Vercel as a server-only secret and redeploy.
 - [ ] Confirm a public upload returns a retrievable CID and stores it in a Sepolia delivery.
 - [ ] Confirm mUSDC approve, fund, release, and refund receipts with balance changes.

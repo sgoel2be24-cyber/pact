@@ -14,7 +14,7 @@ The stretch build adds three judge-visible features without removing the origina
 - on-chain reputation based only on released milestones and fully released jobs: `score = released milestones + 5 × completed jobs`;
 - 6-decimal `mUSDC` escrow using the standard `approve → transferFrom → transfer` flow. The faucet-style mock token is valueless and testnet-only.
 
-> The currently linked Sepolia contract and Vercel app predate the stretch build. Redeploy both contracts and update Vercel before presenting these bonuses as live testnet evidence.
+> The stretch contracts are deployed on Sepolia. Complete the public IPFS and wallet walkthrough before presenting every bonus as demonstrated end to end.
 
 ## Run locally
 
@@ -85,7 +85,7 @@ NEXT_PUBLIC_MOCK_USDC_ADDRESS=<new MockUSDC address>
 PINATA_JWT=<server-only free-tier token>
 ```
 
-The `/deploy` page remains a no-private-key helper for the escrow contract alone. Use the command-line deployment above for the complete two-contract bonus build. Verify both contracts on Etherscan with compiler `v0.8.28+commit.7893614a`, optimizer 200 runs, EVM `cancun`, and `artifacts/standard-input.json`; neither constructor has arguments.
+The `/deploy` page is a no-private-key helper that deploys MockUSDC and PactEscrow in two MetaMask confirmations. The command-line deployment remains available for automation. Verify both contracts on Etherscan with compiler `v0.8.28+commit.7893614a`, optimizer 200 runs, EVM `cancun`, and `artifacts/standard-input.json`; neither constructor has arguments.
 
 ## Code map
 

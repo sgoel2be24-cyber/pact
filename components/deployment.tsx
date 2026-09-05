@@ -12,20 +12,31 @@ import {
 } from "lucide-react";
 import abi from "@/lib/abi.json";
 import code from "@/lib/deployment-code.json";
+import mockCode from "@/lib/mock-usdc-deployment-code.json";
 import { friendlyError } from "@/lib/escrow";
 
-const storageKey = "pact-sepolia-deployment-v1";
+const storageKey = "pact-sepolia-bonus-deployment-v2";
 type Record = {
   chainId: number;
   address: string;
   block: number;
   transaction: string;
+  mockUsdcAddress: string;
+  mockUsdcTransaction: string;
 };
-type Estimate = { address: string; balance: string; maximumFee: string };
+type Estimate = {
+  address: string;
+  balance: string;
+  maximumFee: string;
+};
+type PendingDeployment = {
+  escrow?: string;
+  mockUsdc?: string;
+};
 
 export default function Deployment() {
   const [estimate, setEstimate] = useState<Estimate | null>(null);
-  const [hash, setHash] = useState("");
+  const [pending, setPending] = useState<PendingDeployment>({});
   const [record, setRecord] = useState<Record | null>(null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -48,7 +59,7 @@ export default function Deployment() {
   useEffect(() => {
     try {
       const saved = localStorage.getItem(storageKey);
-      if (saved && /^0x[0-9a-fA-F]{64}$/.test(saved)) setHash(saved);
+      if (saved) setPending(JSON.parse(saved) as PendingDeployment);
     } catch {}
   }, []);
 
@@ -74,26 +85,38 @@ export default function Deployment() {
     return new BrowserProvider(window.ethereum);
   }
 
-  async function inspect(p: BrowserProvider, transaction: string) {
-    const receipt = await p.getTransactionReceipt(transaction);
-    if (!receipt) {
+  async function inspect(p: BrowserProvider, hashes: PendingDeployment) {
+    if (!hashes.escrow || !hashes.mockUsdc)
+      throw new Error("Both deployment transactions are required.");
+    const [receipt, mockReceipt] = await Promise.all([
+      p.getTransactionReceipt(hashes.escrow),
+      p.getTransactionReceipt(hashes.mockUsdc),
+    ]);
+    if (!receipt || !mockReceipt) {
       setMessage(
         "Transaction is still pending or not yet available. Check again after confirmation.",
       );
       return;
     }
-    if (receipt.status !== 1)
+    if (receipt.status !== 1 || mockReceipt.status !== 1)
       throw new Error(
         "This transaction failed. No successful deployment was recorded.",
       );
-    if (!receipt.contractAddress)
-      throw new Error("This transaction is not a contract deployment.");
-    const tx = await p.getTransaction(transaction);
-    const deployed = await p.getCode(receipt.contractAddress);
+    if (!receipt.contractAddress || !mockReceipt.contractAddress)
+      throw new Error("A transaction is not a contract deployment.");
+    const [tx, mockTx, deployed, mockDeployed] = await Promise.all([
+      p.getTransaction(hashes.escrow),
+      p.getTransaction(hashes.mockUsdc),
+      p.getCode(receipt.contractAddress),
+      p.getCode(mockReceipt.contractAddress),
+    ]);
     if (
       !tx ||
       tx.data.toLowerCase() !== code.bytecode.toLowerCase() ||
-      deployed.toLowerCase() !== code.deployedBytecode.toLowerCase()
+      deployed.toLowerCase() !== code.deployedBytecode.toLowerCase() ||
+      !mockTx ||
+      mockTx.data.toLowerCase() !== mockCode.bytecode.toLowerCase() ||
+      mockDeployed.toLowerCase() !== mockCode.deployedBytecode.toLowerCase()
     )
       throw new Error(
         "Deployed code does not match this Pact build. Do not configure the app with it.",
@@ -103,6 +126,8 @@ export default function Deployment() {
       address: receipt.contractAddress,
       block: receipt.blockNumber,
       transaction: receipt.hash,
+      mockUsdcAddress: mockReceipt.contractAddress,
+      mockUsdcTransaction: mockReceipt.hash,
     });
     setMessage(
       "Deployment confirmed. The deployed code matches this build. Explorer verification is the next step.",
@@ -129,12 +154,17 @@ export default function Deployment() {
       const p = await provider();
       await p.send("eth_requestAccounts", []);
       const signer = await p.getSigner();
-      const request = await new ContractFactory(
-        abi,
-        code.bytecode,
-        signer,
-      ).getDeployTransaction();
-      const gas = await signer.estimateGas(request);
+      const [escrowRequest, mockRequest] = await Promise.all([
+        new ContractFactory(abi, code.bytecode, signer).getDeployTransaction(),
+        new ContractFactory(
+          [],
+          mockCode.bytecode,
+          signer,
+        ).getDeployTransaction(),
+      ]);
+      const gas =
+        (await signer.estimateGas(escrowRequest)) +
+        (await signer.estimateGas(mockRequest));
       const fees = await p.getFeeData();
       const price = fees.maxFeePerGas ?? fees.gasPrice;
       if (!price)
@@ -151,7 +181,7 @@ export default function Deployment() {
           "This account needs more Sepolia test ETH before deployment.",
         );
       setMessage(
-        "Review the account and estimated fee below. MetaMask will show the final transaction before you approve it.",
+        "Review the account and combined fee ceiling below. MetaMask will ask you to approve two contract deployments.",
       );
     });
   }
@@ -167,13 +197,36 @@ export default function Deployment() {
         throw new Error(
           "The wallet account changed. Check the deployment fee again.",
         );
-      if (hash)
+      if (pending.escrow)
         throw new Error(
-          "A deployment transaction already exists. Check that transaction before deploying again.",
+          "Both deployment transactions already exist. Check them before deploying again.",
         );
-      setMessage(
-        "Confirm the contract deployment in MetaMask. Only a network fee is required; no job funds are deposited.",
-      );
+      let mockUsdc = pending.mockUsdc;
+      if (!mockUsdc) {
+        setMessage(
+          "First confirm the valueless MockUSDC deployment in MetaMask. Only Sepolia test ETH is used for network fees.",
+        );
+        const token = await new ContractFactory(
+          [],
+          mockCode.bytecode,
+          signer,
+        ).deploy();
+        const tokenTx = token.deploymentTransaction();
+        if (!tokenTx) throw new Error("No MockUSDC deployment returned.");
+        mockUsdc = tokenTx.hash;
+        const tokenPending = { mockUsdc };
+        setPending(tokenPending);
+        localStorage.setItem(storageKey, JSON.stringify(tokenPending));
+        setMessage("MockUSDC submitted. Waiting for Sepolia confirmation…");
+        await tokenTx.wait();
+      } else {
+        const receipt = await p.getTransactionReceipt(mockUsdc);
+        if (!receipt || receipt.status !== 1 || !receipt.contractAddress)
+          throw new Error(
+            "The saved MockUSDC deployment is not confirmed successfully.",
+          );
+      }
+      setMessage("Now confirm the PactEscrow deployment in MetaMask.");
       const contract = await new ContractFactory(
         abi,
         code.bytecode,
@@ -181,13 +234,12 @@ export default function Deployment() {
       ).deploy();
       const tx = contract.deploymentTransaction();
       if (!tx) throw new Error("No deployment transaction returned.");
-      setHash(tx.hash);
-      try {
-        localStorage.setItem(storageKey, tx.hash);
-      } catch {}
-      setMessage("Deployment submitted. Waiting for Sepolia confirmation…");
+      const hashes = { mockUsdc, escrow: tx.hash };
+      setPending(hashes);
+      localStorage.setItem(storageKey, JSON.stringify(hashes));
+      setMessage("PactEscrow submitted. Waiting for Sepolia confirmation…");
       await tx.wait();
-      await inspect(p, tx.hash);
+      await inspect(p, hashes);
     });
   }
   function download() {
@@ -301,7 +353,7 @@ export default function Deployment() {
         <button
           className="secondary"
           onClick={estimateDeployment}
-          disabled={busy || !!hash || walletAvailable !== true}
+          disabled={busy || !!pending.escrow || walletAvailable !== true}
         >
           <Wallet size={16} />
           {walletAvailable === false
@@ -331,8 +383,8 @@ export default function Deployment() {
       </section>
       <section className="deployment-panel">
         <div className="card-title">
-          <h3>2. Deploy PactEscrow</h3>
-          <span>No token, no admin owner, no job deposit.</span>
+          <h3>2. Deploy both bonus contracts</h3>
+          <span>MockUSDC first, then PactEscrow. No job deposit.</span>
         </div>
         <p className="reference-text">
           MetaMask will ask you to approve this deployment. Review that its
@@ -344,7 +396,7 @@ export default function Deployment() {
           disabled={
             busy ||
             !estimate ||
-            !!hash ||
+            !!pending.escrow ||
             Number(estimate.balance) < Number(estimate.maximumFee)
           }
         >
@@ -353,22 +405,38 @@ export default function Deployment() {
           ) : (
             <ShieldCheck size={16} />
           )}
-          Deploy on Sepolia
+          {pending.mockUsdc
+            ? "Resume PactEscrow deployment"
+            : "Deploy MockUSDC + PactEscrow"}
         </button>
-        {hash && (
+        {(pending.mockUsdc || pending.escrow) && (
           <div className="deployment-result">
-            <a
-              className="reference-link"
-              href={`https://sepolia.etherscan.io/tx/${hash}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              View deployment transaction <ExternalLink size={12} />
-            </a>
+            {pending.mockUsdc && (
+              <a
+                className="reference-link"
+                href={`https://sepolia.etherscan.io/tx/${pending.mockUsdc}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                View MockUSDC transaction <ExternalLink size={12} />
+              </a>
+            )}
+            {pending.escrow && (
+              <a
+                className="reference-link"
+                href={`https://sepolia.etherscan.io/tx/${pending.escrow}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                View PactEscrow transaction <ExternalLink size={12} />
+              </a>
+            )}
             <button
               className="secondary"
-              disabled={busy}
-              onClick={() => run(async () => inspect(await provider(), hash))}
+              disabled={busy || !pending.escrow || !pending.mockUsdc}
+              onClick={() =>
+                run(async () => inspect(await provider(), pending))
+              }
             >
               Check confirmation
             </button>
@@ -390,6 +458,7 @@ export default function Deployment() {
             needed.
           </p>
           <p className="deployment-hash">{record.transaction}</p>
+          <p className="deployment-hash">{record.mockUsdcTransaction}</p>
           <button className="secondary" onClick={download}>
             Download deployment record
           </button>

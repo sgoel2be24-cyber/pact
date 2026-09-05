@@ -78,6 +78,16 @@ fs.writeFileSync(
     { parser: "json" },
   ),
 );
+fs.writeFileSync(
+  "lib/mock-usdc-deployment-code.json",
+  await format(
+    JSON.stringify({
+      bytecode: `0x${output.contracts["MockUSDC.sol"].MockUSDC.evm.bytecode.object}`,
+      deployedBytecode: `0x${output.contracts["MockUSDC.sol"].MockUSDC.evm.deployedBytecode.object}`,
+    }),
+    { parser: "json" },
+  ),
+);
 // Self-contained standard JSON input for explorer verification.
 for (const source of Object.keys(output.sources))
   if (!input.sources[source])

@@ -1,8 +1,10 @@
 {
   "chainId": 11155111,
-  "address": "0x00a549b25930B10f4DC9e102b5bb407812c66A18",
-  "block": 11639875,
-  "transaction": "0xd6e39ecbfebedc9b6682798ecb8230f82bd1e56c7361319f9bcc999fe5296f92",
+  "address": "0xc90DdE1971272b2F074F79D9fd4e9d650C1A0d04",
+  "block": 11643433,
+  "transaction": "0x1dddbfb8f8f0785b124c88501c8686f8a575a01e2f0f7a3356690fc2ec428735",
   "compiler": "0.8.28",
-  "optimizerRuns": 200
+  "optimizerRuns": 200,
+  "mockUsdcAddress": "0xfFBE3fb8Dc690af8a1023497176E053e8510040D",
+  "mockUsdcTransaction": "0x07dbe9b5dd7aaa5242f9aaefa6807e65e0bd3f12cee0f3be172809a2a678cfcf"
 }

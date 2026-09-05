@@ -2,12 +2,12 @@
 
 Source: official rubric screenshot provided by Shikhar, September 5, 2026. Weights are judging criteria, not a guaranteed score.
 
-| Criterion                         | Weight | Verified in this source build                                                                                     | Still required for public proof                                                |
-| --------------------------------- | -----: | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| Working demo on testnet           |    40% | Complete local ETH and mUSDC flows; real local transactions                                                       | Redeploy stretch contracts, update Vercel, complete three-role Sepolia journey |
-| Contract correctness and security |    25% | Exact allocation, role/state checks, CEI, reentrancy guard, SafeERC20, fee-token rejection, 18 contract scenarios | Verify new PactEscrow and MockUSDC source on Etherscan                         |
-| UI / UX and wallet flow           |    20% | Asset-aware amounts, two-step token feedback, IPFS controls, reputation display, local browser inspection         | Repeat wallet and responsive checks on the new public deployment               |
-| Creativity and bonus features     |    15% | All three bonus implementations are complete and locally verified                                                 | Capture public IPFS retrieval and Sepolia token/reputation receipts            |
+| Criterion                         | Weight | Verified in this source build                                                                                     | Still required for public proof                                     |
+| --------------------------------- | -----: | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Working demo on testnet           |    40% | Complete local ETH and mUSDC flows; bonus contracts deployed on Sepolia                                           | Complete three-role Sepolia journey                                 |
+| Contract correctness and security |    25% | Exact allocation, role/state checks, CEI, reentrancy guard, SafeERC20, fee-token rejection, 18 contract scenarios | Verify new PactEscrow and MockUSDC source on Etherscan              |
+| UI / UX and wallet flow           |    20% | Asset-aware amounts, two-step token feedback, IPFS controls, reputation display, local browser inspection         | Repeat wallet and responsive checks on the new public deployment    |
+| Creativity and bonus features     |    15% | All three bonus implementations are complete and locally verified                                                 | Capture public IPFS retrieval and Sepolia token/reputation receipts |
 
 ## Bonus claim matrix
 
