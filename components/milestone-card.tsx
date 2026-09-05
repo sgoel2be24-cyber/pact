@@ -7,7 +7,13 @@ import {
   FileCheck2,
   Gavel,
 } from "lucide-react";
-import { eth, statusNames, type Milestone, type Role } from "@/lib/escrow";
+import {
+  formatAmount,
+  statusNames,
+  type Asset,
+  type Milestone,
+  type Role,
+} from "@/lib/escrow";
 import { Reference } from "./primitives";
 export type ActionKind =
   | "deliver"
@@ -19,12 +25,14 @@ export default function MilestoneCard({
   item,
   id,
   role,
+  asset,
   busy,
   onAction,
 }: {
   item: Milestone;
   id: number;
   role: Role;
+  asset: Asset;
   busy: boolean;
   onAction: (kind: ActionKind) => void;
 }) {
@@ -51,7 +59,7 @@ export default function MilestoneCard({
         <div className="milestone-title">
           <h4>{item.title}</h4>
           <p>
-            {eth(item.amount)} <span>ETH</span>
+            {formatAmount(item.amount, asset)} <span>{asset.symbol}</span>
           </p>
         </div>
         <span className={`status-pill ${state.toLowerCase()}`}>

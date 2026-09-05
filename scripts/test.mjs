@@ -50,6 +50,7 @@ try {
     ["--test", "--test-concurrency=1", "tests/escrow.test.mjs"],
     { env: { ...process.env, TEST_RPC_URL: `http://127.0.0.1:${port}` } },
   );
+  await run(process.execPath, ["--test", "tests/ipfs.test.mjs"]);
 } finally {
   chain.kill("SIGTERM");
 }

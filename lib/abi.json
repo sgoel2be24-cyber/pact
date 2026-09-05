@@ -7,9 +7,18 @@
   { "inputs": [], "name": "InvalidParticipants", "type": "error" },
   { "inputs": [], "name": "InvalidState", "type": "error" },
   { "inputs": [], "name": "InvalidText", "type": "error" },
+  { "inputs": [], "name": "InvalidToken", "type": "error" },
   { "inputs": [], "name": "PaymentFailed", "type": "error" },
   { "inputs": [], "name": "ReentrancyGuardReentrantCall", "type": "error" },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "token", "type": "address" }
+    ],
+    "name": "SafeERC20FailedOperation",
+    "type": "error"
+  },
   { "inputs": [], "name": "Unauthorized", "type": "error" },
+  { "inputs": [], "name": "UnsupportedTokenBehavior", "type": "error" },
   {
     "anonymous": false,
     "inputs": [
@@ -147,6 +156,44 @@
     "type": "event"
   },
   {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "freelancer",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "releasedMilestones",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "completedJobs",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "score",
+        "type": "uint256"
+      }
+    ],
+    "name": "ReputationUpdated",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "JOB_COMPLETION_BONUS",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       { "internalType": "uint256", "name": "jobId", "type": "uint256" },
       { "internalType": "uint256", "name": "milestoneId", "type": "uint256" }
@@ -170,6 +217,23 @@
       { "internalType": "uint256", "name": "jobId", "type": "uint256" }
     ],
     "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "freelancer", "type": "address" },
+      { "internalType": "address", "name": "arbitrator", "type": "address" },
+      { "internalType": "address", "name": "token", "type": "address" },
+      { "internalType": "string", "name": "title", "type": "string" },
+      { "internalType": "string", "name": "agreementRef", "type": "string" },
+      { "internalType": "string[]", "name": "titles", "type": "string[]" },
+      { "internalType": "uint256[]", "name": "amounts", "type": "uint256[]" }
+    ],
+    "name": "createTokenJob",
+    "outputs": [
+      { "internalType": "uint256", "name": "jobId", "type": "uint256" }
+    ],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -222,7 +286,8 @@
           { "internalType": "uint256", "name": "total", "type": "uint256" },
           { "internalType": "uint256", "name": "released", "type": "uint256" },
           { "internalType": "uint256", "name": "refunded", "type": "uint256" },
-          { "internalType": "uint256", "name": "createdAt", "type": "uint256" }
+          { "internalType": "uint256", "name": "createdAt", "type": "uint256" },
+          { "internalType": "address", "name": "token", "type": "address" }
         ],
         "internalType": "struct PactEscrow.Job",
         "name": "",
@@ -258,6 +323,23 @@
         "name": "",
         "type": "tuple[]"
       }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "freelancer", "type": "address" }
+    ],
+    "name": "getReputation",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "releasedMilestones",
+        "type": "uint256"
+      },
+      { "internalType": "uint256", "name": "completedJobs", "type": "uint256" },
+      { "internalType": "uint256", "name": "score", "type": "uint256" }
     ],
     "stateMutability": "view",
     "type": "function"

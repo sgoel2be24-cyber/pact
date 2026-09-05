@@ -18,22 +18,34 @@ if (!local && !process.env.DEPLOYER_PRIVATE_KEY)
 const signer = local
   ? await provider.getSigner(0)
   : new Wallet(process.env.DEPLOYER_PRIVATE_KEY, provider);
-const artifact = JSON.parse(
+const escrowArtifact = JSON.parse(
   fs.readFileSync("artifacts/PactEscrow.json", "utf8"),
 );
+const tokenArtifact = JSON.parse(
+  fs.readFileSync("artifacts/MockUSDC.json", "utf8"),
+);
+const token = await new ContractFactory(
+  tokenArtifact.abi,
+  tokenArtifact.bytecode,
+  signer,
+).deploy();
+const tokenReceipt = await token.deploymentTransaction().wait();
 const contract = await new ContractFactory(
-  artifact.abi,
-  artifact.bytecode,
+  escrowArtifact.abi,
+  escrowArtifact.bytecode,
   signer,
 ).deploy();
 const receipt = await contract.deploymentTransaction().wait();
 const address = await contract.getAddress();
+const mockUsdcAddress = await token.getAddress();
 fs.mkdirSync(local ? ".local" : "deployments", { recursive: true });
 const record = {
   chainId: Number(network.chainId),
   address,
   block: receipt.blockNumber,
   transaction: receipt.hash,
+  mockUsdcAddress,
+  mockUsdcTransaction: tokenReceipt.hash,
   compiler: "0.8.28",
   optimizerRuns: 200,
 };
@@ -44,7 +56,7 @@ fs.writeFileSync(
 if (local)
   fs.writeFileSync(
     ".env.local",
-    `NEXT_PUBLIC_CHAIN_ID=31337\nNEXT_PUBLIC_RPC_URL=http://127.0.0.1:8545\nNEXT_PUBLIC_CONTRACT_ADDRESS=${address}\nNEXT_PUBLIC_DEPLOY_BLOCK=${receipt.blockNumber}\n`,
+    `NEXT_PUBLIC_CHAIN_ID=31337\nNEXT_PUBLIC_RPC_URL=http://127.0.0.1:8545\nNEXT_PUBLIC_CONTRACT_ADDRESS=${address}\nNEXT_PUBLIC_DEPLOY_BLOCK=${receipt.blockNumber}\nNEXT_PUBLIC_MOCK_USDC_ADDRESS=${mockUsdcAddress}\nIPFS_RPC_URL=http://127.0.0.1:5001\n`,
   );
 console.log(JSON.stringify(record, null, 2));
 provider.destroy();

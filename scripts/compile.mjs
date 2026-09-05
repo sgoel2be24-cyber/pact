@@ -4,7 +4,7 @@ import solc from "solc";
 import { format } from "prettier";
 
 const sources = Object.fromEntries(
-  ["PactEscrow.sol", "TestReceivers.sol"].map((name) => [
+  ["PactEscrow.sol", "MockUSDC.sol", "TestReceivers.sol"].map((name) => [
     name,
     { content: fs.readFileSync(`contracts/${name}`, "utf8") },
   ]),

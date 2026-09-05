@@ -983,6 +983,12 @@ h1 {
   align-items: center;
   gap: 7px;
 }
+.contract-card .asset-contract {
+  display: block;
+  margin-top: 7px;
+  font-family: monospace;
+  font-size: 9px;
+}
 .job-tabs {
   display: flex;
   gap: 8px;
@@ -1216,6 +1222,7 @@ footer > span:last-child {
 }
 .form-field input,
 .form-field textarea,
+.form-field select,
 .milestone-input input {
   width: 100%;
   border: 1px solid #dfe5d5;
@@ -1225,6 +1232,53 @@ footer > span:last-child {
   color: #526441;
   font-size: 12px;
   line-height: 1.7;
+}
+.form-field select {
+  appearance: none;
+}
+.ipfs-upload {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin: -8px 0 18px;
+}
+.ipfs-upload > span,
+.ipfs-upload > p {
+  color: #6f7963;
+  font-size: 10px;
+  line-height: 1.6;
+}
+.ipfs-upload > p {
+  color: #a94c31;
+  width: 100%;
+}
+.reputation-card {
+  margin: 18px 0 2px 42px;
+  padding: 12px;
+  border: 1px solid #e1e7d7;
+  border-radius: 7px;
+  background: #f4f7ee;
+}
+.reputation-card > span {
+  display: block;
+  color: #6f7963;
+  font-size: 9px;
+  letter-spacing: 0.8px;
+  margin-bottom: 6px;
+}
+.reputation-card strong {
+  font-family: "Manrope", sans-serif;
+  color: #5c704c;
+  font-size: 15px;
+}
+.reputation-card p,
+.reputation-card small {
+  display: block;
+  color: #6f7963;
+  font-size: 9px;
+  line-height: 1.7;
+  margin-top: 4px;
 }
 .form-field textarea {
   resize: vertical;

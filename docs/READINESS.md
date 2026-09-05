@@ -1,54 +1,39 @@
 # Submission readiness
 
-Status: Sepolia contract deployed and source-verified; public frontend deployed at https://pact-ten-gamma.vercel.app. Public desktop/mobile layout checks pass; MetaMask connection is stopped at its phishing warning. Complete live-wallet verification, recording, and submission remain.
+Status: all three bonus features are implemented and locally verified. The previously published Sepolia contract and Vercel build are still the ETH-only version; public bonus proof requires a fresh two-contract deployment and Vercel update.
 
-Priority: [judging evidence](JUDGING.md). Secure the live demo (40%), contract evidence (25%), and wallet UX (20%) before optional bonus work (15%). These weights are not scores already earned.
+## Verified in the current source
 
-Wallet setup: three distinct MetaMask accounts are ready for Client, Contributor, and Arbitrator. Contributor and Arbitrator each have 0.003 Sepolia ETH for demo transaction fees.
+- [x] Original native ETH create, deliver, approve, dispute, release, and refund path preserved.
+- [x] ERC-20 funding uses exact allowance plus `transferFrom`; settlement uses SafeERC20 transfer.
+- [x] Exact-balance check rejects fee-on-transfer funding.
+- [x] MockUSDC is explicitly valueless, has 6 decimals, and supports testnet minting.
+- [x] Reputation counts only released milestones and fully released, zero-refund jobs.
+- [x] Score formula is on-chain and visible in the UI: `milestones + 5 × jobs`.
+- [x] Job-spec and delivery upload controls pin files and populate `ipfs://CID` references.
+- [x] Direct HTTPS and existing `ipfs://` references remain supported.
+- [x] Upload route keeps credentials server-side, caps files at 4 MB, validates CIDs, checks origin, and rate-limits best-effort.
+- [x] Local deployment creates both contracts; seed creates ETH and completed mUSDC evidence.
+- [x] 18 contract scenarios and 2 IPFS route scenarios pass.
+- [x] Typecheck, formatting, production build, and local browser inspection pass.
 
-- [x] Core contract implements exact funding, independent milestones, delivery, approval, dispute, release/refund.
-- [x] Contract tests pass (12 scenarios).
-- [x] Role-aware frontend and transaction feedback implemented.
-- [x] Production build and TypeScript checks pass.
-- [x] Dependency audit clean after overriding solc's vulnerable temporary-file dependency.
-- [x] GitHub Actions workflow runs formatting, types, contract tests, production build, and production dependency audit.
-- [x] Browser journey verified for create → deliver → release and dispute → refund.
-- [x] Mobile layout and failure feedback inspected (390px, no horizontal overflow).
-- [x] Sepolia contract deployed with dedicated funded testnet wallet.
-- [x] Contract source verified as an exact bytecode match on Sepolia Etherscan.
-- [x] Frontend deployed with Sepolia configuration.
-- [ ] MetaMask journey verified on Sepolia.
-- [x] Public GitHub repository created/pushed with green judge-ready CI.
-- [x] IPFS upload/pinning explicitly omitted while full live verification remains pending.
-- [ ] Final two-minute recording captured.
-- [ ] Final submission links entered by user.
+## Required before claiming live Sepolia bonuses
 
-Keep evidence of each completed gate. A local demo is not a substitute for required testnet evidence.
+- [ ] Deploy the new MockUSDC and PactEscrow on Sepolia.
+- [ ] Verify both contracts on Etherscan from `artifacts/standard-input.json`.
+- [ ] Update `deployments/sepolia.json` and all five `NEXT_PUBLIC_*` Vercel variables.
+- [ ] Add `PINATA_JWT` to Vercel as a server-only secret and redeploy.
+- [ ] Confirm a public upload returns a retrievable CID and stores it in a Sepolia delivery.
+- [ ] Confirm mUSDC approve, fund, release, and refund receipts with balance changes.
+- [ ] Complete a fully released job and capture its on-chain reputation result.
+- [ ] Recheck desktop/mobile and all three MetaMask roles on the public build.
+- [ ] Record the new verified-contract links in this document; the UI already follows its configured address.
+- [ ] Record the final demo and enter the submission links.
 
-## Sepolia evidence — September 5
+## Historical evidence (superseded for bonus claims)
 
-- Public frontend: https://pact-ten-gamma.vercel.app (Vercel production; all four requested Sepolia environment variables persisted).
-- Exact role-by-role inputs and receipt checklist: [LIVE-EVIDENCE.md](LIVE-EVIDENCE.md).
-- Verified contract: https://sepolia.etherscan.io/address/0x00a549b25930B10f4DC9e102b5bb407812c66A18#code
-- Deployment transaction: https://sepolia.etherscan.io/tx/0xd6e39ecbfebedc9b6682798ecb8230f82bd1e56c7361319f9bcc999fe5296f92 (block 11639875).
-- Live Agreement #001 / on-chain job 0 funded with 0.025 ETH: https://sepolia.etherscan.io/tx/0xfd83f7f3ec4448cf9631214069f05775a84842183d625f13c067b51aa37c6eb1 (block 11639956).
-- RPC event verification matches the intended Client, Contributor, Arbitrator, and 0.012/0.008/0.005 ETH allocations.
-- Public repository: https://github.com/sgoel2be24-cyber/pact
-- Judge-ready CI: https://github.com/sgoel2be24-cyber/pact/actions/workflows/ci.yml
+- Public ETH-only app: https://pact-ten-gamma.vercel.app
+- Verified ETH-only contract: https://sepolia.etherscan.io/address/0x00a549b25930B10f4DC9e102b5bb407812c66A18#code
+- Prior live inputs and receipts: [LIVE-EVIDENCE.md](LIVE-EVIDENCE.md)
 
-## Browser evidence — September 5
-
-- The initial browser-policy outage cleared on retry. Public desktop (1440×1080) and mobile (390×844) layouts were inspected; mobile document width equals viewport width (390px), with no horizontal overflow. Agreement #001, all three funded milestones, 0.025 ETH protected, participant addresses, original funding receipt, and three proof links load correctly. No browser warning/error logs were recorded. A browser without MetaMask shows explicit install/reload feedback.
-- Real Chrome MetaMask connection reached a wallet warning: “Continue at your own risk,” reporting signs of phishing or wallet-draining activity for the public URL. The agent did not select “Connect anyway.” User review is required before continuing; connection, account switching, and live transactions remain unverified. The warning’s cause has not been established. Responsive emulation is not a physical-phone MetaMask test.
-- Current source passes all 12 contract tests, type-checking, formatting, production build, and full dependency audit (zero vulnerabilities). Contract source and generated ABI/deployment bytecode remain unchanged.
-- Local browser transactions: first delivery block 3; approval block 4; second delivery block 5; dispute block 6; arbitrator refund block 7. Result: job 0 released 0.012 ETH, refunded 0.008 ETH, and retained 0.005 ETH.
-- A second two-milestone agreement was created through the form at block 8 for 0.003 ETH. Overlapping roles were rejected before submission.
-- Desktop 1440×1080 and mobile 390×844 inspected. Mobile dialog content fits its width; Escape closes it. Missing MetaMask produces an explicit connection message.
-- Local screenshots are in `output/playwright/` (ignored from version control). No Sepolia or injected-wallet success is claimed.
-
-## Wallet deployment and verification
-
-- `/deploy` provides MetaMask fee estimation and Sepolia-only contract deployment, with public transaction-hash recovery after refresh.
-- `configure:sepolia` verifies transaction success, deployment input, and deployed runtime code before optionally applying public app configuration.
-- Production build and TypeScript pass. Deployment code matches the already tested local contract. Missing-wallet browser feedback checked.
-- Public deployment and MetaMask agreement-funding transactions succeeded. The remaining wallet gate is the full Contributor delivery → Client approval/dispute → Arbitrator resolution journey.
+Keep this evidence as proof that the original flow worked, but do not present it as proof of the new ABI, token, reputation, or IPFS upload route.

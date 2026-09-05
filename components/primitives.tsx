@@ -7,12 +7,14 @@ export function Stat({
   value,
   icon,
   note,
+  unit,
   accent = false,
 }: {
   label: string;
   value: string;
   icon: ReactNode;
   note: string;
+  unit: string;
   accent?: boolean;
 }) {
   return (
@@ -23,7 +25,7 @@ export function Stat({
       </div>
       <p className="stat-value">
         {value}
-        <span>ETH</span>
+        <span>{unit}</span>
       </p>
       <p className="stat-note">
         {accent && <span className="network-dot" />}

@@ -21,12 +21,12 @@ export default function Guide({ onBack }: { onBack: () => void }) {
           {
             icon: <LockKeyhole />,
             title: "Agree & fund",
-            text: "Choose your contributor and arbitrator. Define two or three milestones and deposit the exact total.",
+            text: "Choose your contributor and arbitrator. Define two or three milestones and deposit the exact total in ETH or mUSDC.",
           },
           {
             icon: <FileCheck2 />,
             title: "Submit the work",
-            text: "The contributor attaches a delivery reference. That milestone is ready for client review.",
+            text: "The contributor uploads and pins a file to IPFS, or attaches an existing public link. That milestone is ready for client review.",
           },
           {
             icon: <CheckCheck />,
@@ -62,8 +62,9 @@ export default function Guide({ onBack }: { onBack: () => void }) {
           <h3>What is recorded?</h3>
           <p>
             Funding, delivery references, disputes, and payment decisions are
-            public on-chain. Use links or IPFS references for deliverables.
-            Never include secrets or personal documents.
+            public on-chain. Files can be pinned to IPFS and their ipfs:// CID
+            stored with the agreement or delivery. Never include secrets or
+            personal documents.
           </p>
         </div>
         <div>

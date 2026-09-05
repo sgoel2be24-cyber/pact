@@ -1,10 +1,12 @@
 import fs from "node:fs";
-import { JsonRpcProvider } from "ethers";
+import { JsonRpcProvider, isAddress } from "ethers";
 
 const hash = process.argv[2];
+const mockFlag = process.argv.indexOf("--mock-usdc");
+const mockUsdcAddress = mockFlag >= 0 ? process.argv[mockFlag + 1] : "";
 if (!/^0x[0-9a-fA-F]{64}$/.test(hash ?? ""))
   throw new Error(
-    "Usage: npm run configure:sepolia -- <deployment transaction hash> [--apply]",
+    "Usage: npm run configure:sepolia -- <escrow deployment transaction hash> [--mock-usdc <address>] [--apply]",
   );
 const rpc =
   process.env.SEPOLIA_RPC_URL || "https://ethereum-sepolia-rpc.publicnode.com";
@@ -28,6 +30,18 @@ try {
     throw new Error(
       "Deployment does not match the current compiled Pact contract.",
     );
+  if (mockUsdcAddress) {
+    if (!isAddress(mockUsdcAddress))
+      throw new Error("--mock-usdc must be a valid contract address.");
+    const mockArtifact = JSON.parse(
+      fs.readFileSync("artifacts/MockUSDC.json", "utf8"),
+    );
+    const mockCode = await provider.getCode(mockUsdcAddress);
+    if (mockCode.toLowerCase() !== mockArtifact.deployedBytecode.toLowerCase())
+      throw new Error(
+        "Mock token address does not match this compiled MockUSDC.",
+      );
+  }
   const record = {
     chainId: 11155111,
     address: receipt.contractAddress,
@@ -35,6 +49,7 @@ try {
     transaction: receipt.hash,
     compiler: "0.8.28",
     optimizerRuns: 200,
+    ...(mockUsdcAddress ? { mockUsdcAddress } : {}),
   };
   console.log(JSON.stringify(record, null, 2));
   if (process.argv.includes("--apply")) {
@@ -53,7 +68,7 @@ try {
     const publicRpc = "https://ethereum-sepolia-rpc.publicnode.com";
     fs.writeFileSync(
       ".env.local",
-      `NEXT_PUBLIC_CHAIN_ID=11155111\nNEXT_PUBLIC_RPC_URL=${publicRpc}\nNEXT_PUBLIC_CONTRACT_ADDRESS=${record.address}\nNEXT_PUBLIC_DEPLOY_BLOCK=${record.block}\n`,
+      `NEXT_PUBLIC_CHAIN_ID=11155111\nNEXT_PUBLIC_RPC_URL=${publicRpc}\nNEXT_PUBLIC_CONTRACT_ADDRESS=${record.address}\nNEXT_PUBLIC_DEPLOY_BLOCK=${record.block}\nNEXT_PUBLIC_MOCK_USDC_ADDRESS=${mockUsdcAddress}\n`,
     );
     console.log(
       "Sepolia configuration saved. Restart or rebuild the app. Explorer verification is still required.",

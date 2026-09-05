@@ -1,7 +1,13 @@
 import { test, after } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { ContractFactory, JsonRpcProvider, parseEther } from "ethers";
+import {
+  Contract,
+  ContractFactory,
+  JsonRpcProvider,
+  parseEther,
+  parseUnits,
+} from "ethers";
 const provider = new JsonRpcProvider(process.env.TEST_RPC_URL, undefined, {
   cacheTimeout: -1,
   pollingInterval: 50,
@@ -21,6 +27,25 @@ async function deploy(name, signer = client) {
   const c = await new ContractFactory(a.abi, a.bytecode, signer).deploy();
   await c.waitForDeployment();
   return c;
+}
+async function tokenFixture() {
+  const contract = await deploy("PactEscrow");
+  const token = await deploy("MockUSDC");
+  const values = [parseUnits("125", 6), parseUnits("75", 6)];
+  const tokenTotal = values[0] + values[1];
+  await (await token.approve(await contract.getAddress(), tokenTotal)).wait();
+  await (
+    await contract.createTokenJob(
+      freelancerAddress,
+      arbitratorAddress,
+      await token.getAddress(),
+      "Stablecoin design",
+      "ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3g3b6zj5qnqvyamztqfup2m4u",
+      ["Prototype", "Documentation"],
+      values,
+    )
+  ).wait();
+  return { contract, token, values, tokenTotal };
 }
 async function fixture(freelancerOverride) {
   const contract = await deploy("PactEscrow");
@@ -70,6 +95,20 @@ test("funding stores exact allocation, distinct participants, and immutable scop
     amounts,
   );
   assert.ok(items.every((i) => i.status === 0n));
+});
+test("new jobs preserve the legacy ETH job return prefix", async () => {
+  const c = await fixture();
+  const legacy = new Contract(
+    await c.getAddress(),
+    [
+      "function getJob(uint256) view returns ((address client,address freelancer,address arbitrator,string title,string agreementRef,uint256 total,uint256 released,uint256 refunded,uint256 createdAt))",
+    ],
+    provider,
+  );
+  const job = await legacy.getJob(0);
+  assert.equal(job.client, clientAddress);
+  assert.equal(job.title, "SDK integration");
+  assert.equal(job.total, total);
 });
 test("rejects wrong funding, zero amount, invalid milestone count, and missing scope", async () => {
   const c = await deploy("PactEscrow");
@@ -263,6 +302,10 @@ test("rejecting recipient rolls back settlement and all accounting", async () =>
   assert.equal((await c.getMilestones(0))[0].status, 1n);
   assert.equal((await c.getJob(0)).released, 0n);
   assert.equal(await balance(await c.getAddress()), total);
+  assert.deepEqual(
+    [...(await c.getReputation(await receiver.getAddress()))],
+    [0n, 0n, 0n],
+  );
 });
 test("recipient reentry cannot trigger an additional release", async () => {
   const receiver = await deploy("ReenteringFreelancer");
@@ -294,4 +337,144 @@ test("multiple jobs remain isolated and final settlement conserves all deposits"
   assert.equal((await c.getJob(0)).released, total);
   assert.equal((await c.getJob(1)).released, 0n);
   assert.ok((await c.getMilestones(1)).every((i) => i.status === 0n));
+});
+
+test("ERC-20 funding requires allowance and escrows the exact approved total", async () => {
+  const contract = await deploy("PactEscrow");
+  const token = await deploy("MockUSDC");
+  const tokenAddress = await token.getAddress();
+  const escrowAddress = await contract.getAddress();
+  const values = [parseUnits("60", 6), parseUnits("40", 6)];
+  const create = () =>
+    contract.createTokenJob(
+      freelancerAddress,
+      arbitratorAddress,
+      tokenAddress,
+      "Stablecoin job",
+      "ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3g3b6zj5qnqvyamztqfup2m4u",
+      ["Build", "Verify"],
+      values,
+    );
+  await assert.rejects(create, /allowance|SafeERC20|revert/i);
+  await (await token.approve(escrowAddress, values[0] + values[1])).wait();
+  await (await create()).wait();
+  const job = await contract.getJob(0);
+  assert.equal(job.token, tokenAddress);
+  assert.equal(job.total, values[0] + values[1]);
+  assert.equal(await token.balanceOf(escrowAddress), values[0] + values[1]);
+  assert.equal(await provider.getBalance(escrowAddress), 0n);
+});
+
+test("ERC-20 release and refund transfer exact milestone amounts without touching ETH", async () => {
+  const { contract, token, values, tokenTotal } = await tokenFixture();
+  const escrowAddress = await contract.getAddress();
+  const freelancerBefore = await token.balanceOf(freelancerAddress);
+  const clientBefore = await token.balanceOf(clientAddress);
+  await (
+    await contract.connect(freelancer).deliver(0, 0, "ipfs://bafyproof")
+  ).wait();
+  await (await contract.approve(0, 0)).wait();
+  await (
+    await contract.connect(freelancer).deliver(0, 1, "https://example.com/docs")
+  ).wait();
+  await (await contract.dispute(0, 1, "Missing acceptance case")).wait();
+  await (
+    await contract.connect(arbitrator).resolve(0, 1, false, "Refund confirmed")
+  ).wait();
+  assert.equal(
+    await token.balanceOf(freelancerAddress),
+    freelancerBefore + values[0],
+  );
+  assert.equal(await token.balanceOf(clientAddress), clientBefore + values[1]);
+  assert.equal(await token.balanceOf(escrowAddress), 0n);
+  assert.equal(await provider.getBalance(escrowAddress), 0n);
+  const job = await contract.getJob(0);
+  assert.equal(job.released + job.refunded, tokenTotal);
+});
+
+test("reputation counts releases and only fully successful jobs with a transparent score", async () => {
+  const { contract } = await tokenFixture();
+  assert.deepEqual(
+    [...(await contract.getReputation(freelancerAddress))],
+    [0n, 0n, 0n],
+  );
+  for (let i = 0; i < 2; i++) {
+    await (
+      await contract.connect(freelancer).deliver(0, i, `ipfs://proof-${i}`)
+    ).wait();
+    await (await contract.approve(0, i)).wait();
+  }
+  assert.deepEqual(
+    [...(await contract.getReputation(freelancerAddress))],
+    [2n, 1n, 7n],
+  );
+
+  await (
+    await contract.createJob(
+      freelancerAddress,
+      arbitratorAddress,
+      "Mixed outcome",
+      "Scope",
+      ["Accepted", "Refunded"],
+      [1n, 1n],
+      { value: 2n },
+    )
+  ).wait();
+  await (await contract.connect(freelancer).deliver(1, 0, "Proof")).wait();
+  await (await contract.approve(1, 0)).wait();
+  await (await contract.connect(freelancer).deliver(1, 1, "Proof")).wait();
+  await (await contract.dispute(1, 1, "Reason")).wait();
+  await (
+    await contract.connect(arbitrator).resolve(1, 1, false, "Refund")
+  ).wait();
+  assert.deepEqual(
+    [...(await contract.getReputation(freelancerAddress))],
+    [3n, 1n, 8n],
+  );
+});
+
+test("fee-on-transfer tokens are rejected before a job is recorded", async () => {
+  const contract = await deploy("PactEscrow");
+  const token = await deploy("FeeToken");
+  const totalValue = parseEther("2");
+  await (await token.approve(await contract.getAddress(), totalValue)).wait();
+  await expectError(
+    contract.createTokenJob.staticCall(
+      freelancerAddress,
+      arbitratorAddress,
+      await token.getAddress(),
+      "Fee token",
+      "Scope",
+      ["A", "B"],
+      [parseEther("1"), parseEther("1")],
+    ),
+    "UnsupportedTokenBehavior",
+    contract,
+  );
+  assert.equal(await contract.jobCount(), 0n);
+});
+
+test("token jobs reject zero addresses and accounts without contract code", async () => {
+  const contract = await deploy("PactEscrow");
+  const args = (token) => [
+    freelancerAddress,
+    arbitratorAddress,
+    token,
+    "Invalid token",
+    "Scope",
+    ["A", "B"],
+    [1n, 1n],
+  ];
+  await expectError(
+    contract.createTokenJob.staticCall(
+      ...args("0x0000000000000000000000000000000000000000"),
+    ),
+    "InvalidToken",
+    contract,
+  );
+  await expectError(
+    contract.createTokenJob.staticCall(...args(freelancerAddress)),
+    "InvalidToken",
+    contract,
+  );
 });

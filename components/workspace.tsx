@@ -34,12 +34,14 @@ import {
   configured,
   contractAddress,
   demoSigner,
+  erc20,
   escrow,
-  eth,
   explorer,
+  fetchReputation,
   fetchActivity,
   fetchJobs,
   fetchMilestones,
+  formatAmount,
   friendlyError,
   isLocalChain,
   localDemoAllowed,
@@ -50,12 +52,14 @@ import {
   type Activity,
   type Job,
   type Milestone,
+  type Reputation,
 } from "@/lib/escrow";
 
 import { Stat, Reference, TransactionLink, Person, Modal } from "./primitives";
 import MilestoneCard from "./milestone-card";
-import CreateForm from "./create-form";
+import CreateForm, { type CreateValues } from "./create-form";
 import Guide from "./guide";
+import IpfsUpload from "./ipfs-upload";
 
 type Action = {
   kind: "deliver" | "approve" | "dispute" | "release" | "refund";
@@ -75,6 +79,7 @@ export default function Workspace() {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [items, setItems] = useState<Milestone[]>([]);
   const [activity, setActivity] = useState<Activity[]>([]);
+  const [reputation, setReputation] = useState<Reputation | null>(null);
   const [loading, setLoading] = useState(true);
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [loadError, setLoadError] = useState("");
@@ -86,6 +91,7 @@ export default function Workspace() {
   const [connecting, setConnecting] = useState(false);
   const [view, setView] = useState<"workspace" | "guide">("workspace");
   const [action, setAction] = useState<Action | null>(null);
+  const [actionText, setActionText] = useState("");
   const [creating, setCreating] = useState(false);
   const [notice, setNotice] = useState<Notice | null>(null);
   const [busy, setBusy] = useState(false);
@@ -121,23 +127,33 @@ export default function Workspace() {
     setDetailsLoading(true);
     setItems([]);
     setActivity([]);
+    setReputation(null);
     setActivityError("");
     void Promise.allSettled([
       fetchMilestones(selectedId),
       fetchActivity(selectedId),
+      fetchReputation(
+        jobs.find((candidate) => candidate.id === selectedId)!.freelancer,
+      ),
     ]).then((results) => {
       if (request !== detailsRequest.current) return;
-      const [milestones, events] = results;
+      const [milestones, events, reputationResult] = results;
       if (milestones.status === "fulfilled") setItems(milestones.value);
       else setLoadError(friendlyError(milestones.reason));
       if (events.status === "fulfilled") setActivity(events.value);
       else setActivityError(friendlyError(events.reason));
+      if (reputationResult.status === "fulfilled")
+        setReputation(reputationResult.value);
       setDetailsLoading(false);
     });
     return () => {
       ++detailsRequest.current;
     };
-  }, [selectedId, refreshKey]);
+  }, [selectedId, refreshKey, jobs]);
+
+  useEffect(() => {
+    if (action) setActionText("");
+  }, [action]);
 
   const connectDemo = useCallback(async (index: number) => {
     setConnecting(true);
@@ -260,9 +276,7 @@ export default function Workspace() {
   async function submitAction(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!job || !action) return;
-    const text = String(
-      new FormData(event.currentTarget).get("text") || "",
-    ).trim();
+    const text = actionText.trim();
     if (action.kind !== "approve" && !text) return;
     const { id, kind } = action;
     const labels = {
@@ -281,14 +295,102 @@ export default function Workspace() {
     });
   }
 
-  const totals = jobs.reduce(
-    (sum, j) => ({
-      locked: sum.locked + j.total - j.released - j.refunded,
-      released: sum.released + j.released,
-      refunded: sum.refunded + j.refunded,
-    }),
-    { locked: 0n, released: 0n, refunded: 0n },
-  );
+  async function createAgreement(values: CreateValues) {
+    if (!signer) return;
+    setBusy(true);
+    const total = values.amounts.reduce((sum, amount) => sum + amount, 0n);
+    try {
+      if (!usingDemo) await assertWalletNetwork();
+      const c = escrow(signer);
+      let tx: ContractTransactionResponse;
+      if (values.asset.symbol === "ETH") {
+        setNotice({
+          state: "signing",
+          title: usingDemo
+            ? "Submitting to the local chain"
+            : "Confirm in your wallet",
+          detail: "Fund the agreement with native ETH.",
+        });
+        tx = await c.createJob(
+          values.freelancer,
+          values.arbitrator,
+          values.title,
+          values.scope,
+          values.titles,
+          values.amounts,
+          { value: total },
+        );
+      } else {
+        const token = erc20(values.asset.token, signer);
+        const owner = await signer.getAddress();
+        const allowance: bigint = await token.allowance(owner, contractAddress);
+        if (allowance < total) {
+          setNotice({
+            state: "signing",
+            title: "Step 1 of 2 · approve mUSDC",
+            detail: `Approve exactly ${formatAmount(total, values.asset)} ${values.asset.symbol} for this agreement.`,
+          });
+          const approval = await token.approve(contractAddress, total);
+          setNotice({
+            state: "pending",
+            title: "Allowance submitted",
+            detail: "Waiting for confirmation before funding the agreement.",
+            hash: approval.hash,
+          });
+          const approvalReceipt = await approval.wait();
+          if (!approvalReceipt || approvalReceipt.status !== 1)
+            throw new Error("Token approval was not successful.");
+        }
+        setNotice({
+          state: "signing",
+          title: "Step 2 of 2 · fund agreement",
+          detail: "Confirm the transferFrom escrow deposit.",
+        });
+        tx = await c.createTokenJob(
+          values.freelancer,
+          values.arbitrator,
+          values.asset.token,
+          values.title,
+          values.scope,
+          values.titles,
+          values.amounts,
+        );
+      }
+      setNotice({
+        state: "pending",
+        title: "Transaction submitted",
+        detail: "Waiting for the funded agreement confirmation.",
+        hash: tx.hash,
+      });
+      const receipt = await tx.wait();
+      if (!receipt || receipt.status !== 1)
+        throw new Error("Agreement funding was not successful.");
+      setCreating(false);
+      setSelectedId(null);
+      setNotice({
+        state: "success",
+        title: "Agreement funded",
+        detail: `Confirmed on ${networkName} · block ${receipt.blockNumber.toLocaleString()}`,
+        hash: receipt.hash,
+      });
+      await refresh();
+    } catch (error) {
+      setNotice({
+        state: "error",
+        title: "Agreement not funded",
+        detail: friendlyError(error),
+      });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const displayAsset = job?.asset ?? { symbol: "ETH", decimals: 18, token: "" };
+  const totals = {
+    locked: job ? job.total - job.released - job.refunded : 0n,
+    released: job?.released ?? 0n,
+    refunded: job?.refunded ?? 0n,
+  };
   const settledCount = items.filter((m) => m.status >= 3).length;
   const progress =
     job && job.total > 0n
@@ -416,13 +518,17 @@ export default function Workspace() {
             <strong>
               <ShieldCheck size={16} /> Project proof
             </strong>
-            <a
-              href="https://sepolia.etherscan.io/address/0x00a549b25930B10f4DC9e102b5bb407812c66A18#code"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Verified Sepolia contract <ExternalLink size={13} />
-            </a>
+            {explorer(contractAddress, "address") ? (
+              <a
+                href={explorer(contractAddress, "address")!}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Configured Sepolia contract <ExternalLink size={13} />
+              </a>
+            ) : (
+              <span>Local contract active</span>
+            )}
             <a
               href="https://github.com/sgoel2be24-cyber/pact"
               target="_blank"
@@ -492,24 +598,27 @@ export default function Workspace() {
               )}
               <section
                 className="stats-grid"
-                aria-label="Workspace payment totals"
+                aria-label="Selected agreement payment totals"
               >
                 <Stat
                   label="PROTECTED IN ESCROW"
-                  value={eth(totals.locked)}
+                  value={formatAmount(totals.locked, displayAsset)}
+                  unit={displayAsset.symbol}
                   icon={<LockKeyhole size={18} />}
                   note="Ready when the work is"
                   accent
                 />
                 <Stat
                   label="RELEASED TO CONTRIBUTORS"
-                  value={eth(totals.released)}
+                  value={formatAmount(totals.released, displayAsset)}
+                  unit={displayAsset.symbol}
                   icon={<ArrowUpRight size={19} />}
                   note="Good work, paid for"
                 />
                 <Stat
                   label="RETURNED TO CLIENTS"
-                  value={eth(totals.refunded)}
+                  value={formatAmount(totals.refunded, displayAsset)}
+                  unit={displayAsset.symbol}
                   icon={<ArrowDownLeft size={19} />}
                   note="Resolutions with a clear record"
                 />
@@ -604,7 +713,8 @@ export default function Workspace() {
                           <div>
                             <span>Total funded</span>
                             <strong>
-                              {eth(job.total)} <small>ETH</small>
+                              {formatAmount(job.total, job.asset)}{" "}
+                              <small>{job.asset.symbol}</small>
                             </strong>
                           </div>
                           <div>
@@ -627,11 +737,18 @@ export default function Workspace() {
                         </div>
                         <div className="progress-caption">
                           <span>
-                            {eth(job.released + job.refunded)} ETH settled
+                            {formatAmount(
+                              job.released + job.refunded,
+                              job.asset,
+                            )}{" "}
+                            {job.asset.symbol} settled
                           </span>
                           <span>
-                            {eth(job.total - job.released - job.refunded)} ETH
-                            protected
+                            {formatAmount(
+                              job.total - job.released - job.refunded,
+                              job.asset,
+                            )}{" "}
+                            {job.asset.symbol} protected
                           </span>
                         </div>
                       </section>
@@ -649,6 +766,7 @@ export default function Workspace() {
                           <MilestoneCard
                             key={`${job.id}-${id}`}
                             item={item}
+                            asset={job.asset}
                             id={id}
                             role={role}
                             busy={busy || !!loadError}
@@ -683,6 +801,27 @@ export default function Workspace() {
                           current={address}
                           color="sage"
                         />
+                        <div className="reputation-card">
+                          <span>ON-CHAIN REPUTATION</span>
+                          {reputation?.supported === false ? (
+                            <p>
+                              Available after the stretch contract is deployed.
+                            </p>
+                          ) : (
+                            <>
+                              <strong>{reputation?.score ?? "—"} points</strong>
+                              <p>
+                                {reputation?.releasedMilestones ?? "—"} released
+                                milestones · {reputation?.completedJobs ?? "—"}{" "}
+                                completed job
+                                {reputation?.completedJobs === 1 ? "" : "s"}
+                              </p>
+                              <small>
+                                1 per release + 5 per fully released job
+                              </small>
+                            </>
+                          )}
+                        </div>
                         <Person
                           role="Arbitrator"
                           address={job.arbitrator}
@@ -766,6 +905,12 @@ export default function Workspace() {
                               {shortAddress(contractAddress)}
                             </span>
                           )}
+                          {job.token !==
+                            "0x0000000000000000000000000000000000000000" && (
+                            <span className="asset-contract">
+                              {job.asset.symbol} · {shortAddress(job.token)}
+                            </span>
+                          )}
                         </div>
                       </div>
                     </aside>
@@ -830,7 +975,8 @@ export default function Workspace() {
                     : "Protected milestone amount"}
               </span>
               <strong>
-                {eth(action.item.amount)} <small>ETH</small>
+                {formatAmount(action.item.amount, job.asset)}{" "}
+                <small>{job.asset.symbol}</small>
               </strong>
             </div>
             {action.item.evidenceRef && (
@@ -870,6 +1016,8 @@ export default function Workspace() {
                         : "Explain how the evidence supports this release or refund."
                   }
                   disabled={busy}
+                  value={actionText}
+                  onChange={(event) => setActionText(event.target.value)}
                 />
                 <span>
                   {action.kind === "deliver"
@@ -877,6 +1025,9 @@ export default function Workspace() {
                     : "Your explanation becomes part of the public on-chain record."}
                 </span>
               </label>
+            )}
+            {action.kind === "deliver" && (
+              <IpfsUpload disabled={busy} onUploaded={setActionText} />
             )}
             <div className="modal-actions">
               <button
@@ -914,24 +1065,7 @@ export default function Workspace() {
             address={address}
             busy={busy}
             usingDemo={usingDemo}
-            onCreate={async (values) => {
-              await transact("Agreement funded", (s) =>
-                escrow(s).createJob(
-                  values.freelancer,
-                  values.arbitrator,
-                  values.title,
-                  values.scope,
-                  values.titles,
-                  values.amounts,
-                  {
-                    value: values.amounts.reduce(
-                      (sum, amount) => sum + amount,
-                      0n,
-                    ),
-                  },
-                ),
-              );
-            }}
+            onCreate={createAgreement}
           />
         </Modal>
       )}

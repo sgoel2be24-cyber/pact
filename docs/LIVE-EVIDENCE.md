@@ -1,6 +1,8 @@
-# Agreement #001: live evidence and exact demo inputs
+# Agreement #001: historical ETH-only evidence
 
-This is the existing Sepolia job **0**, funded with **0.025 ETH**. Do not create another agreement or redeploy the contract. The following steps are prepared inputs, not a claim that their transactions have already happened. The dispute is an explicitly staged testnet review scenario, not a claim of failing automated tests.
+> This evidence predates the IPFS upload, reputation, and ERC-20 stretch build. Preserve it as proof of the original escrow journey, but do not use it to claim the new bonuses are deployed.
+
+This is the existing Sepolia job **0**, funded with **0.025 ETH** on the superseded contract. The following steps are prepared inputs, not a claim that their transactions have already happened. The dispute is an explicitly staged testnet review scenario, not a claim of failing automated tests.
 
 ## Public proof
 

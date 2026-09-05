@@ -1,11 +1,21 @@
-# Two-minute demo
+# Two-to-three-minute bonus demo
 
-Use the local role selector during development. For final judging, demonstrate the same flow on Sepolia with separately connected test wallets. Never present local transactions as Sepolia transactions.
+Use the local role selector during development. For judging, use separately connected Sepolia accounts and never describe local transactions as testnet transactions.
 
-1. **The promise (15 seconds):** “A client funds the job before work starts. The developer gets paid per approved milestone. Disagreements have a named decision-maker and a visible record.” Show the funded total and three protected allocations.
-2. **The delivery (20 seconds):** select Contributor; submit an actual public commit or deliverable reference for milestone one.
-3. **The payout (25 seconds):** select Client; inspect the evidence; approve and release. Show the confirmed transaction, 0.012 ETH released, and 0.013 ETH still protected.
-4. **The disagreement (35 seconds):** submit milestone two as Contributor. As Client, dispute it with a specific acceptance-criteria failure. As Arbitrator, review both references and refund the client with an explanation.
-5. **The evidence (25 seconds):** show 0.008 ETH refunded and the final 0.005 ETH still protected. Point to the activity trail. Close with the tests and verified Sepolia contract.
+## Before recording
 
-Fallback: if a public RPC is unavailable, identify the local chain explicitly and show the same contract flow there; do not imply the testnet deployment is working when it is not.
+- Deploy and verify the new PactEscrow and MockUSDC.
+- Configure Vercel with both public addresses and a server-only Pinata JWT.
+- Mint/hold at least 250 mUSDC in the client wallet and fund all three role wallets with Sepolia ETH for fees.
+- Upload one harmless file once and confirm its gateway URL opens.
+
+## Script
+
+1. **Core promise (20 seconds):** “Pact locks the full job upfront and settles each milestone independently in ETH or stablecoin-style tokens.” Show a funded ETH agreement.
+2. **Real IPFS evidence (30 seconds):** as Contributor, open a funded milestone, choose **Upload & pin a file**, and wait for “Pinned — CID added.” Submit the populated `ipfs://...` value. Open the saved reference after confirmation.
+3. **ETH safety still works (25 seconds):** as Client, approve the delivery. Show the exact released amount and another allocation still protected.
+4. **Stablecoin flow (35 seconds):** create an mUSDC agreement. Narrate the two confirmations: exact ERC-20 allowance, then `transferFrom` funding. Show the agreement labeled mUSDC, not ETH.
+5. **Objective reputation (25 seconds):** complete the second milestone or open the seeded completed job. Show “2 released milestones · 1 completed job · 7 points” and state the formula: one point per released milestone plus five per fully released job.
+6. **Close (15 seconds):** show the verified contracts and green CI. Say: “No ratings, no paid IPFS dependency, and the original ETH escrow path remains covered.”
+
+Fallback: if Pinata or a public RPC is unavailable, identify the local Kubo/Hardhat setup explicitly. Do not imply public availability or Sepolia success when it is not working.

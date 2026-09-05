@@ -1,36 +1,30 @@
 # Judging evidence — HackBlox Web3 PS01
 
-Source: official rubric screenshot provided by Shikhar, September 5, 2026. These are judging weights, not scores earned by Pact.
+Source: official rubric screenshot provided by Shikhar, September 5, 2026. Weights are judging criteria, not a guaranteed score.
 
-| Criterion                         | Weight | Current evidence                                                                                                                                                                                  | Required before submission                                                                                                                                 |
-| --------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Working demo on testnet           | 40%    | Exact-match source-verified Sepolia contract; live Agreement #001 funded with 0.025 ETH                                                                                                           | Public frontend; real Sepolia delivery, release, dispute and refund transactions for the full journey                                                      |
-| Contract correctness and security | 25%    | One core contract; role checks; state validation; exact milestone allocations; OpenZeppelin reentrancy guard; 12 passing adversarial and lifecycle test scenarios; Etherscan exact bytecode match | Re-run checks on final source and preserve the verified explorer/build evidence; document trust boundaries and test commands                               |
-| UI / UX and wallet flow           | 20%    | Responsive workspace, participant-specific actions, confirmations and event history; missing-wallet setup instructions                                                                            | Real MetaMask connection, account/network changes, rejected requests, insufficient test ETH and pending transaction states checked in the final deployment |
-| Creativity and bonus features     | 15%    | Open-source contributor use case and evidence-centered arbitration; existing HTTPS/IPFS references supported                                                                                      | Prefer one complete IPFS evidence feature after the core live journey works. Existing CID support alone is not a completed upload/pinning integration      |
+| Criterion                         | Weight | Verified in this source build                                                                                     | Still required for public proof                                                |
+| --------------------------------- | -----: | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| Working demo on testnet           |    40% | Complete local ETH and mUSDC flows; real local transactions                                                       | Redeploy stretch contracts, update Vercel, complete three-role Sepolia journey |
+| Contract correctness and security |    25% | Exact allocation, role/state checks, CEI, reentrancy guard, SafeERC20, fee-token rejection, 18 contract scenarios | Verify new PactEscrow and MockUSDC source on Etherscan                         |
+| UI / UX and wallet flow           |    20% | Asset-aware amounts, two-step token feedback, IPFS controls, reputation display, local browser inspection         | Repeat wallet and responsive checks on the new public deployment               |
+| Creativity and bonus features     |    15% | All three bonus implementations are complete and locally verified                                                 | Capture public IPFS retrieval and Sepolia token/reputation receipts            |
 
-## Delivery order
+## Bonus claim matrix
 
-1. Guide Shikhar through creating a dedicated test wallet in regular Chrome, enabling Sepolia, and obtaining free test ETH. Do not assume prior blockchain knowledge.
-2. Deploy the tested contract and verify its source on Sepolia's explorer.
-3. Configure and publish the frontend for Sepolia, then exercise all three roles with real testnet transactions.
-4. Publish the source repository with tests, reproducible instructions, and clearly stated limitations.
-5. Finish one relevant bonus if the live core is stable. IPFS is first; reputation and stablecoins are deferred.
-6. Record the 2–3 minute walkthrough and assemble the four required submission links.
+| Bonus                           | Implementation status                                                                                                                                                                                                                   | Judge proof                                                                                                                                 |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| IPFS deliverable storage (+5%)  | **Fully implemented in code/local demo.** The UI uploads job specs and milestone files; the server pins through local Kubo or Pinata; the returned `ipfs://CID` is stored on-chain. Existing IPFS and HTTPS references remain accepted. | Upload a small file on the public app, open it through the gateway, then show the same URI in the agreement/delivery and transaction event. |
+| On-chain reputation (+5%)       | **Fully implemented in code/local demo.** A release adds one released milestone; a job adds five bonus points only when every milestone is released and none refunded. No subjective rating exists.                                     | Complete a two-milestone job, show `2 released / 1 completed / 7 points`, then show `getReputation` on Etherscan.                           |
+| ERC-20 stablecoin support (+5%) | **Fully implemented in code/local demo.** The 6-decimal mUSDC mock uses exact allowance, `transferFrom` funding, and `transfer` settlement while the original payable ETH function remains.                                             | Show approval and funding as separate Sepolia transactions, then release one mUSDC milestone and show token balance changes.                |
 
-## Required submission artifacts
+“Fully implemented” above describes the repository and reproducible local proof. Do not claim a public/testnet bonus demonstration until the new contracts and frontend are deployed. The older verified contract at `0x00a5…6A18` is ETH-only.
 
-- Public GitHub repository: contracts, frontend and tests.
-- Verified Sepolia contract explorer URL.
-- Public deployed frontend URL.
-- 2–3 minute demonstration video or live walkthrough.
+## Presentation order
 
-No local URL or local transaction substitutes for testnet evidence. Passing tests does not imply a security audit or guarantee a judge's score.
+1. Show one ETH release and one disputed refund to establish the core escrow.
+2. Upload a real small file and point to the returned CID in the on-chain delivery.
+3. Open the completed seeded/demo contributor profile: the formula is visible beside its counters.
+4. Create an mUSDC agreement: call out “approve exactly this total,” then “fund with transferFrom.”
+5. End on verified source, green checks, and the caveat that mUSDC has no monetary value.
 
-## Scope protection
-
-Keep one core contract, one frontend and wallet integration. The rubric's owner/arbitrator wording describes appropriate access control; it does not require adding an unnecessary global owner. Quadratic voting and issuer hierarchies belong to other problem statements and are not relevant to freelance escrow.
-
-## Presentation priorities
-
-Show the live transaction and updated protected balance first. Demonstrate one approved milestone and one disputed/refunded milestone. Show that the third allocation remains protected. Explain the trusted arbitrator in one sentence. End with the verified contract, public repository and tests. Show a bonus only if it works end to end.
+No local URL or local transaction substitutes for the rubric's testnet evidence. Automated tests and this review do not constitute a professional audit.
