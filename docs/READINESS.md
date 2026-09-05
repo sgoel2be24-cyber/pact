@@ -1,6 +1,6 @@
 # Submission readiness
 
-Status: Sepolia contract deployed and source-verified; public frontend, repository, complete live journey, recording, and submission remain.
+Status: Sepolia contract deployed and source-verified; public repository and CI are green. Public frontend, complete live journey, recording, and submission remain.
 
 Priority: [judging evidence](JUDGING.md). Secure the live demo (40%), contract evidence (25%), and wallet UX (20%) before optional bonus work (15%). These weights are not scores already earned.
 
@@ -18,7 +18,7 @@ Wallet setup: three distinct MetaMask accounts are ready for Client, Contributor
 - [x] Contract source verified as an exact bytecode match on Sepolia Etherscan.
 - [ ] Frontend deployed with Sepolia configuration.
 - [ ] MetaMask journey verified on Sepolia.
-- [ ] Public GitHub repository created/pushed.
+- [x] Public GitHub repository created/pushed with green judge-ready CI.
 - [ ] IPFS upload/pinning bonus completed or explicitly omitted.
 - [ ] Final two-minute recording captured.
 - [ ] Final submission links entered by user.
@@ -31,6 +31,8 @@ Keep evidence of each completed gate. A local demo is not a substitute for requi
 - Deployment transaction: https://sepolia.etherscan.io/tx/0xd6e39ecbfebedc9b6682798ecb8230f82bd1e56c7361319f9bcc999fe5296f92 (block 11639875).
 - Live Agreement #001 / on-chain job 0 funded with 0.025 ETH: https://sepolia.etherscan.io/tx/0xfd83f7f3ec4448cf9631214069f05775a84842183d625f13c067b51aa37c6eb1 (block 11639956).
 - RPC event verification matches the intended Client, Contributor, Arbitrator, and 0.012/0.008/0.005 ETH allocations.
+- Public repository: https://github.com/sgoel2be24-cyber/pact
+- Judge-ready CI: https://github.com/sgoel2be24-cyber/pact/actions/workflows/ci.yml
 
 ## Browser evidence — September 5
 
