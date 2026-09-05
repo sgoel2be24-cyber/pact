@@ -1,0 +1,41 @@
+{
+  "name": "pact-escrow",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --hostname 127.0.0.1",
+    "build": "next build",
+    "start": "next start --hostname 127.0.0.1",
+    "typecheck": "tsc --noEmit",
+    "compile": "node scripts/compile.mjs",
+    "chain": "hardhat node --hostname 127.0.0.1",
+    "test": "node scripts/test.mjs",
+    "deploy:local": "node scripts/deploy.mjs --local",
+    "deploy:sepolia": "node scripts/deploy.mjs --sepolia",
+    "demo:seed": "node scripts/seed.mjs",
+    "format": "prettier --write app components lib scripts tests docs *.json *.ts *.md",
+    "format:check": "prettier --check app components lib scripts tests docs *.json *.ts *.md",
+    "configure:sepolia": "node scripts/configure-sepolia.mjs"
+  },
+  "dependencies": {
+    "ethers": "6.17.0",
+    "lucide-react": "^0.577.0",
+    "next": "16.3.4",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  },
+  "devDependencies": {
+    "@openzeppelin/contracts": "5.6.1",
+    "@types/node": "^24.10.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "hardhat": "3.15.0",
+    "prettier": "3.8.3",
+    "solc": "0.8.28",
+    "typescript": "^5.9.3"
+  },
+  "overrides": {
+    "tmp": "^0.2.6"
+  }
+}
