@@ -13,6 +13,8 @@ This is the existing Sepolia job **0**, funded with **0.025 ETH**. Do not create
 
 ## Wallets and switching
 
+Current verification blocker: MetaMask displays a potential phishing/wallet-draining warning for the public URL. Connection has not been approved. Review the warning directly in MetaMask before deciding whether to proceed; no live delivery or settlement is claimed. The cause of this warning is unconfirmed.
+
 | Role        | Existing account                             |
 | ----------- | -------------------------------------------- |
 | Client      | `0xe0097C19b3b173A87D4209fc1982ACaD5897A2F3` |

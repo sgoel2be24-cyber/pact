@@ -1,6 +1,6 @@
 # Submission readiness
 
-Status: Sepolia contract deployed and source-verified; public frontend deployed at https://pact-ten-gamma.vercel.app. Public browser and complete live-wallet verification, recording, and submission remain.
+Status: Sepolia contract deployed and source-verified; public frontend deployed at https://pact-ten-gamma.vercel.app. Public desktop/mobile layout checks pass; MetaMask connection is stopped at its phishing warning. Complete live-wallet verification, recording, and submission remain.
 
 Priority: [judging evidence](JUDGING.md). Secure the live demo (40%), contract evidence (25%), and wallet UX (20%) before optional bonus work (15%). These weights are not scores already earned.
 
@@ -38,7 +38,8 @@ Keep evidence of each completed gate. A local demo is not a substitute for requi
 
 ## Browser evidence — September 5
 
-- Public deployment verification is blocked: two Codex in-app browser attempts were rejected because the admin-enforced browser policy could not be verified. Vercel reports the production deployment Ready, but this does not establish desktop/mobile rendering or MetaMask success. Do not mark these gates complete until browser access works and the actual checks run.
+- The initial browser-policy outage cleared on retry. Public desktop (1440×1080) and mobile (390×844) layouts were inspected; mobile document width equals viewport width (390px), with no horizontal overflow. Agreement #001, all three funded milestones, 0.025 ETH protected, participant addresses, original funding receipt, and three proof links load correctly. No browser warning/error logs were recorded. A browser without MetaMask shows explicit install/reload feedback.
+- Real Chrome MetaMask connection reached a wallet warning: “Continue at your own risk,” reporting signs of phishing or wallet-draining activity for the public URL. The agent did not select “Connect anyway.” User review is required before continuing; connection, account switching, and live transactions remain unverified. The warning’s cause has not been established. Responsive emulation is not a physical-phone MetaMask test.
 - Current source passes all 12 contract tests, type-checking, formatting, production build, and full dependency audit (zero vulnerabilities). Contract source and generated ABI/deployment bytecode remain unchanged.
 - Local browser transactions: first delivery block 3; approval block 4; second delivery block 5; dispute block 6; arbitrator refund block 7. Result: job 0 released 0.012 ETH, refunded 0.008 ETH, and retained 0.005 ETH.
 - A second two-milestone agreement was created through the form at block 8 for 0.003 ETH. Overlapping roles were rejected before submission.
