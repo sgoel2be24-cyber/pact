@@ -1,0 +1,9 @@
+.env*
+.local/
+output/
+artifacts/
+coverage/
+test-results/
+playwright-report/
+.playwright-cli/
+*.tsbuildinfo

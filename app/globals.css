@@ -2033,3 +2033,28 @@ footer > span:last-child {
   white-space: normal;
   text-align: center;
 }
+/* Public evidence remains visible on both workspace and guide views. */
+.proof-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 24px;
+  padding: 14px 18px;
+  margin-bottom: 24px;
+  border: 1px solid #deded4;
+  border-radius: 12px;
+  background: #f5f6ef;
+  font-size: 12px;
+}
+.proof-strip strong,
+.proof-strip a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.proof-strip a {
+  color: #435c36;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  min-height: 28px;
+}

@@ -1,6 +1,6 @@
 # Submission readiness
 
-Status: Sepolia contract deployed and source-verified; public repository and CI are green. Public frontend, complete live journey, recording, and submission remain.
+Status: Sepolia contract deployed and source-verified; public frontend deployed at https://pact-ten-gamma.vercel.app. Public browser and complete live-wallet verification, recording, and submission remain.
 
 Priority: [judging evidence](JUDGING.md). Secure the live demo (40%), contract evidence (25%), and wallet UX (20%) before optional bonus work (15%). These weights are not scores already earned.
 
@@ -16,10 +16,10 @@ Wallet setup: three distinct MetaMask accounts are ready for Client, Contributor
 - [x] Mobile layout and failure feedback inspected (390px, no horizontal overflow).
 - [x] Sepolia contract deployed with dedicated funded testnet wallet.
 - [x] Contract source verified as an exact bytecode match on Sepolia Etherscan.
-- [ ] Frontend deployed with Sepolia configuration.
+- [x] Frontend deployed with Sepolia configuration.
 - [ ] MetaMask journey verified on Sepolia.
 - [x] Public GitHub repository created/pushed with green judge-ready CI.
-- [ ] IPFS upload/pinning bonus completed or explicitly omitted.
+- [x] IPFS upload/pinning explicitly omitted while full live verification remains pending.
 - [ ] Final two-minute recording captured.
 - [ ] Final submission links entered by user.
 
@@ -27,6 +27,8 @@ Keep evidence of each completed gate. A local demo is not a substitute for requi
 
 ## Sepolia evidence — September 5
 
+- Public frontend: https://pact-ten-gamma.vercel.app (Vercel production; all four requested Sepolia environment variables persisted).
+- Exact role-by-role inputs and receipt checklist: [LIVE-EVIDENCE.md](LIVE-EVIDENCE.md).
 - Verified contract: https://sepolia.etherscan.io/address/0x00a549b25930B10f4DC9e102b5bb407812c66A18#code
 - Deployment transaction: https://sepolia.etherscan.io/tx/0xd6e39ecbfebedc9b6682798ecb8230f82bd1e56c7361319f9bcc999fe5296f92 (block 11639875).
 - Live Agreement #001 / on-chain job 0 funded with 0.025 ETH: https://sepolia.etherscan.io/tx/0xfd83f7f3ec4448cf9631214069f05775a84842183d625f13c067b51aa37c6eb1 (block 11639956).
@@ -36,6 +38,8 @@ Keep evidence of each completed gate. A local demo is not a substitute for requi
 
 ## Browser evidence — September 5
 
+- Public deployment verification is blocked: two Codex in-app browser attempts were rejected because the admin-enforced browser policy could not be verified. Vercel reports the production deployment Ready, but this does not establish desktop/mobile rendering or MetaMask success. Do not mark these gates complete until browser access works and the actual checks run.
+- Current source passes all 12 contract tests, type-checking, formatting, production build, and full dependency audit (zero vulnerabilities). Contract source and generated ABI/deployment bytecode remain unchanged.
 - Local browser transactions: first delivery block 3; approval block 4; second delivery block 5; dispute block 6; arbitrator refund block 7. Result: job 0 released 0.012 ETH, refunded 0.008 ETH, and retained 0.005 ETH.
 - A second two-milestone agreement was created through the form at block 8 for 0.003 ETH. Overlapping roles were rejected before submission.
 - Desktop 1440×1080 and mobile 390×844 inspected. Mobile dialog content fits its width; Escape closes it. Missing MetaMask produces an explicit connection message.

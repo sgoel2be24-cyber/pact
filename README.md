@@ -2,6 +2,8 @@
 
 **Work agreed. Payment protected.**
 
+[Open the public Sepolia app](https://pact-ten-gamma.vercel.app) · [Exact live-demo evidence and inputs](docs/LIVE-EVIDENCE.md)
+
 [![Judge-ready checks](https://github.com/sgoel2be24-cyber/pact/actions/workflows/ci.yml/badge.svg)](https://github.com/sgoel2be24-cyber/pact/actions/workflows/ci.yml)
 
 Pact is a HackBlox 2026 Web3 PS01 prototype: a client funds a freelance job upfront, a contributor submits work by milestone, and a client approval or named arbitrator's decision releases or refunds exactly that milestone's allocation.

@@ -412,6 +412,32 @@ export default function Workspace() {
         )}
 
         <main>
+          <section className="proof-strip" aria-label="Project proof">
+            <strong>
+              <ShieldCheck size={16} /> Project proof
+            </strong>
+            <a
+              href="https://sepolia.etherscan.io/address/0x00a549b25930B10f4DC9e102b5bb407812c66A18#code"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Verified Sepolia contract <ExternalLink size={13} />
+            </a>
+            <a
+              href="https://github.com/sgoel2be24-cyber/pact"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Open-source repository <ExternalLink size={13} />
+            </a>
+            <a
+              href="https://github.com/sgoel2be24-cyber/pact/actions/workflows/ci.yml"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Tests &amp; build checks <ExternalLink size={13} />
+            </a>
+          </section>
           {view === "guide" ? (
             <Guide onBack={() => setView("workspace")} />
           ) : (
