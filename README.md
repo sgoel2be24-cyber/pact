@@ -2,7 +2,7 @@
 
 **Work agreed. Payment protected.**
 
-[Public app](https://pact-ten-gamma.vercel.app) · [Demo script](docs/DEMO.md) · [Readiness](docs/READINESS.md) · [Security review](docs/SECURITY.md)
+[Public app](https://pact-ten-gamma.vercel.app) · [Pitch deck](https://pact-hackblox.vercel.app) · [Demo script](docs/DEMO.md) · [Readiness](docs/READINESS.md) · [Security review](docs/SECURITY.md)
 
 [![Judge-ready checks](https://github.com/sgoel2be24-cyber/pact/actions/workflows/ci.yml/badge.svg)](https://github.com/sgoel2be24-cyber/pact/actions/workflows/ci.yml)
 
