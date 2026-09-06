@@ -139,7 +139,7 @@ export function evidenceUrl(value: string) {
   if (value.startsWith("ipfs://")) {
     const path = value.slice(7);
     if (/^[a-zA-Z0-9]+(?:\/[a-zA-Z0-9._~!$&'()*+,;=:@%/-]*)?$/.test(path))
-      return `https://ipfs.io/ipfs/${path}`;
+      return `https://gateway.pinata.cloud/ipfs/${path}`;
     return null;
   }
   try {

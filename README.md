@@ -14,7 +14,7 @@ The stretch build adds three judge-visible features without removing the origina
 - on-chain reputation based only on released milestones and fully released jobs: `score = released milestones + 5 × completed jobs`;
 - 6-decimal `mUSDC` escrow using the standard `approve → transferFrom → transfer` flow. The faucet-style mock token is valueless and testnet-only.
 
-> The stretch contracts are deployed on Sepolia. Complete the public IPFS and wallet walkthrough before presenting every bonus as demonstrated end to end.
+> The stretch contracts are deployed and source-verified on Sepolia, the public IPFS upload round-trip works, and a full three-role ETH lifecycle (fund → IPFS evidence → releases → dispute → arbitrator refund) is live on-chain — see [docs/FINAL-VERIFICATION.md](docs/FINAL-VERIFICATION.md). The mUSDC receipts and the reputation completion bonus are test-proven and still need one short live run before being presented as live evidence.
 
 ## Run locally
 
